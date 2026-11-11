@@ -1,0 +1,28 @@
+name: Rapport du matin
+
+on:
+  schedule:
+    # Heures UTC : deux lignes par rapport (heure d'ete / d'hiver), le script n'envoie que la bonne.
+    - cron: "45 5 * * 1-5"   # 07:45 Paris (ete)
+    - cron: "45 6 * * 1-5"   # 07:45 Paris (hiver)
+    - cron: "0 12 * * 1-5"   # 14:00 Paris (ete)
+    - cron: "0 13 * * 1-5"   # 14:00 Paris (hiver)
+  workflow_dispatch: {}       # bouton "Run workflow" pour tester
+
+jobs:
+  rapport:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - run: python cloud/report.py
+        env:
+          SCHEDULE: ${{ github.event.schedule }}
+          DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
+          ALERT_CHANNEL_ID: ${{ secrets.ALERT_CHANNEL_ID }}
+          REPORT_CHANNEL_ID: ${{ secrets.REPORT_CHANNEL_ID }}
